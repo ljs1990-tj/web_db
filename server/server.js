@@ -179,6 +179,36 @@ app.post('/insert', async (req, res) => {
   }
 });
 
+app.post('/user/info', async (req, res) => {
+  console.log(req.body);
+  const { userId } = req.body;  // 클라이언트에서 보낸 데이터
+  try {
+    const connection = await connectToDB();
+    if (connection) {
+      const result = await connection.execute(
+        `SELECT * FROM MEMBER WHERE USERID = :userId`,
+        [userId], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      if (result.rows.length > 0) {
+        // 조회 성공
+        res.send({ msg: 'success', user: result.rows[0] });
+      } else {
+        // 조회 실패
+        res.send({ msg: 'fail' });
+      }
+
+      await connection.close();
+    } else {
+      res.status(500).send({ msg: 'DB 연결 실패' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ msg: '로그인 중 오류가 발생했습니다.' });
+  }
+});
+
 
 
 app.listen(3000, () => {
