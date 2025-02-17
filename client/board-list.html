@@ -36,7 +36,9 @@
                 <td>
                     <a href="javascript:;" @click="fnView(item.BOARDNO)">{{item.TITLE}}</a>
                 </td>
-                <td>{{item.USERNAME}}</td>
+                <td>
+                    <a href="javascript:;" @click="fnUser(item.USERID)">{{item.USERNAME}}</a>
+                </td>
                 <td>{{item.CNT}}</td>
                 <td>{{item.CDATETIME}}</td>
                 <td><button @click="fnRemove(item.BOARDNO)">삭제</button></td>
@@ -97,6 +99,9 @@
             },
             fnInsert : function(){
                 location.href = "board-insert.html";
+            },
+            fnUser : function(userId){
+                location.href = "user-view.html?userId="+userId;
             }
 
             

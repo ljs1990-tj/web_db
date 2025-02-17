@@ -36,9 +36,9 @@ app.get('/', function (req, res) {
 // 로그인 API
 app.post('/login', async (req, res) => {
   console.log(req.body);
-  const { id, pwd } = req.body;  // 클라이언트에서 보낸 데이터
+  const { userId, pwd } = req.body;  // 클라이언트에서 보낸 데이터
 
-  if (!id || !pwd) {
+  if (!userId || !pwd) {
     return res.status(400).send({ msg: '아이디와 비밀번호를 입력해주세요.' });
   }
 
@@ -46,8 +46,8 @@ app.post('/login', async (req, res) => {
     const connection = await connectToDB();
     if (connection) {
       const result = await connection.execute(
-        `SELECT * FROM TBL_USER WHERE USERID = :id AND PASSWORD = :pwd`,
-        [id, pwd], // :id, :pwd 바인딩 변수
+        `SELECT USERNAME, NICKNAME FROM MEMBER WHERE USERID = :userId AND PASSWORD = :pwd`,
+        [userId, pwd], // :id, :pwd 바인딩 변수
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
@@ -73,10 +73,10 @@ app.post('/list', async (req, res) => {
   const {} = req.body;  // 클라이언트에서 보낸 데이터
   try {
     const connection = await connectToDB();
-    if (connection) {
+    if (connection) { 
       const result = await connection.execute(
         `SELECT 
-          BOARDNO, TITLE, USERNAME, 
+          BOARDNO, TITLE, USERNAME, B.USERID,
           CNT, TO_CHAR(B.CDATETIME, 'YYYY-MM-DD') AS CDATETIME 
          FROM BOARD B 
          INNER JOIN MEMBER M ON B.USERID = M.USERID`,
