@@ -1,53 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>연습!!!!!!!!</title>
-    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        table, tr, th, td {
+        table,
+        tr,
+        th,
+        td {
             text-align: center;
-            border : 2px solid #bbb;
+            border: 2px solid #bbb;
             border-collapse: collapse;
-            padding : 5px;
+            padding: 5px;
         }
+
         th {
-            color : rgb(132, 39, 219);
+            color: rgb(132, 39, 219);
             background-color: aliceblue;
             /* font-size: 30px; */
         }
+
         .r-margin {
             margin-right: 5px;
         }
+
         .a-margin {
             width: 430px;
-            margin : 10px;
+            margin: 10px;
             text-align: center;
         }
+
         #index {
             margin-right: 3px;
             text-decoration: none;
         }
-        .color-black{
-            color : black;
+
+        .color-black {
+            color: black;
         }
-        .color-blue{
-            color : blue;
+
+        .color-blue {
+            color: blue;
         }
-        .bgcolor-gray{
+
+        .bgcolor-gray {
             background-color: #ddd;
         }
-        #container{
+
+        #container {
             width: 500px;
-            margin : 20px auto;
+            margin: 20px auto;
         }
-        a{
+
+        a {
             text-decoration: none;
+            color: black;
+
         }
     </style>
 </head>
+
 <body>
     <div id="app">
         <div id="container">
@@ -57,7 +74,7 @@
                     <option value="title">제목</option>
                     <option value="name">작성자</option>
                 </select>
-                <input v-model="keyword" @keyup.enter="fnList" class="r-margin"> 
+                <input v-model="keyword" @keyup.enter="fnList" class="r-margin">
                 <button @click="fnList">검색</button>
             </div>
             <div>
@@ -86,7 +103,12 @@
                 <tr v-for="item in list">
                     <td>{{item.BOARDNO}}</td>
                     <td>
-                        <a href="javascript:;" @click="fnView(item.BOARDNO)">{{item.TITLE}}</a>
+                        <a href="javascript:;" @click="fnView(item.BOARDNO)">
+                            {{item.TITLE}}
+                            <span class="color-blue" v-if="item.COMMENTCNT != 0">
+                                ({{item.COMMENTCNT}})
+                            </span>
+                        </a>
                     </td>
                     <td>
                         <a href="javascript:;" @click="fnUser(item.USERID)">{{item.USERNAME}}</a>
@@ -97,32 +119,18 @@
                 </tr>
             </table>
             <div style="width: 450px; text-align: center; margin-top : 10px;">
-                <a 
-                    v-if="page != 1"
-                    id="index" 
-                    href="javascript:;" 
-                    class="color-black"
-                    @click="fnPageMove('prev')"> < 
-                </a>
-                
-                <a id="index" href="javascript:;" 
-                    v-for="num in index" @click="fnPage(num)">
-                    <span 
-                        v-if="page == num" 
-                        class="bgcolor-gray color-blue">{{num}}
-                    </span>
-                    <span 
-                        v-else 
-                        class="color-black">{{num}}
-                    </span>
-                </a>
-                <a 
-                    v-if="page != index"
-                    id="index" 
-                    href="javascript:;" 
-                    class="color-black"
-                    @click="fnPageMove('next')"> > 
-                </a>
+                <a v-if="page != 1" id="index" href="javascript:;" class="color-black" @click="fnPageMove('prev')">
+                    < </a>
+
+                        <a id="index" href="javascript:;" v-for="num in index" @click="fnPage(num)">
+                            <span v-if="page == num" class="bgcolor-gray color-blue">{{num}}
+                            </span>
+                            <span v-else class="color-black">{{num}}
+                            </span>
+                        </a>
+                        <a v-if="page != index" id="index" href="javascript:;" class="color-black"
+                            @click="fnPageMove('next')"> >
+                        </a>
             </div>
             <div>
                 <button @click="fnInsert">글쓰기</button>
@@ -131,32 +139,33 @@
         </div>
     </div>
 </body>
+
 </html>
 
 <script>
     const app = Vue.createApp({
         data() {
             return {
-                list : [],
-                keyword : "",
-                kind : "all",
-                orderKey : "",
-                orderType : "",
-                index : 0,
-                pageSize : 5,
-                page : 1
+                list: [],
+                keyword: "",
+                kind: "all",
+                orderKey: "",
+                orderType: "",
+                index: 0,
+                pageSize: 5,
+                page: 1
             };
         },
         methods: {
-            fnList : function() { 
+            fnList: function () {
                 var self = this;
                 var nparmap = {
-                    keyword : self.keyword, 
-                    kind : self.kind,
-                    orderKey : self.orderKey,
-                    orderType : self.orderType,
-                    pageSize : self.pageSize,
-                    page : (self.page-1) * self.pageSize
+                    keyword: self.keyword,
+                    kind: self.kind,
+                    orderKey: self.orderKey,
+                    orderType: self.orderType,
+                    pageSize: self.pageSize,
+                    page: (self.page - 1) * self.pageSize
                 };
                 $.ajax({
                     url: "http://localhost:3000/list",  // 서버 주소 수정 (http:// 포함)
@@ -164,17 +173,17 @@
                     type: "POST", // GET, POST
                     data: JSON.stringify(nparmap),   // 서버로 보낼 데이터
                     contentType: "application/json",
-                    success: function(data) {
+                    success: function (data) {
                         console.log(data);
                         self.list = data.list;
                         self.index = Math.ceil(data.count / self.pageSize);
                     }
                 });
             },
-            fnRemove : function(boardNo){
+            fnRemove: function (boardNo) {
                 var self = this;
-                var nparmap = {boardNo : boardNo}; // {boardNo}
-                if(!confirm("정말 삭제할거?")){
+                var nparmap = { boardNo: boardNo }; // {boardNo}
+                if (!confirm("정말 삭제할거?")) {
                     return;
                 }
                 $.ajax({
@@ -183,41 +192,41 @@
                     type: "POST", // GET, POST
                     data: JSON.stringify(nparmap),   // 서버로 보낼 데이터
                     contentType: "application/json",
-                    success: function(data) {
+                    success: function (data) {
                         alert("삭제되었습니다!");
                         console.log(data);
                         self.fnList();
-                        
+
                     }
                 });
             },
-            fnView : function(boardNo){
-                location.href = "board-view.html?boardNo="+boardNo;
+            fnView: function (boardNo) {
+                location.href = "board-view.html?boardNo=" + boardNo;
             },
-            fnInsert : function(){
+            fnInsert: function () {
                 location.href = "board-insert.html";
             },
-            fnUser : function(userId){
-                location.href = "user-view.html?userId="+userId;
+            fnUser: function (userId) {
+                location.href = "user-view.html?userId=" + userId;
             },
 
-            fnOrder : function(orderKey){
+            fnOrder: function (orderKey) {
                 let self = this;
-                if(self.orderKey != orderKey){
+                if (self.orderKey != orderKey) {
                     self.orderType = "";
                 }
                 self.orderKey = orderKey;
                 self.orderType = self.orderType == "ASC" ? "DESC" : "ASC";
                 self.fnList();
             },
-            fnPage : function(num){
+            fnPage: function (num) {
                 let self = this;
                 self.page = num;
                 self.fnList();
             },
-            fnPageMove : function(direction){
+            fnPageMove: function (direction) {
                 let self = this;
-                if(direction == "next"){
+                if (direction == "next") {
                     self.page++;
                 } else {
                     self.page--;
@@ -225,7 +234,7 @@
                 self.fnList();
             }
 
-            
+
         }, // methods
         mounted() {
             // 처음 시작할 때 실행되는 부분

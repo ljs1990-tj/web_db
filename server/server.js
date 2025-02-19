@@ -87,14 +87,21 @@ app.post('/list', async (req, res) => {
       if(orderKey != ""){
         order = ` ORDER BY ${orderKey} ${orderType}` 
       } 
-
+      
       const result = await connection.execute(
         `SELECT 
-          BOARDNO, TITLE, USERNAME, B.USERID,
-          CNT, TO_CHAR(B.CDATETIME, 'YYYY-MM-DD') AS CDATETIME 
+          B.BOARDNO, TITLE, USERNAME, B.USERID,
+          CNT, TO_CHAR(B.CDATETIME, 'YYYY-MM-DD') AS CDATETIME, 
+          NVL(COMMENTCNT, 0) AS COMMENTCNT 
          FROM BOARD B 
-         INNER JOIN MEMBER M ON B.USERID = M.USERID ` 
-         + search + order
+         INNER JOIN MEMBER M ON B.USERID = M.USERID 
+         LEFT JOIN (
+            SELECT BOARDNO, COUNT(*) AS COMMENTCNT
+            FROM BOARD_COMMENT
+            GROUP BY BOARDNO
+          ) C ON B.BOARDNO = C.BOARDNO `
+         + search 
+         + order
          + ` OFFSET :page ROWS FETCH NEXT :pageSize ROWS ONLY`,      
         [page, pageSize], 
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
@@ -261,7 +268,16 @@ app.post('/view', async (req, res) => {
         [boardNo], 
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-      res.send({ msg: 'success', info : result.rows[0] });
+
+      const comment = await connection.execute(
+        `SELECT *
+         FROM BOARD_COMMENT 
+         WHERE BOARDNO = :boardNo`,
+        [boardNo], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      res.send({ msg: 'success', info : result.rows[0], commentList : comment.rows });
       await connection.close();
     } else {
       res.status(500).send({ msg: 'DB 연결 실패' });
@@ -324,13 +340,13 @@ app.post('/prof/list', async (req, res) => {
   }
 });
 
-app.post('/emp/avg', async (req, res) => {
+app.post('/emp/sal', async (req, res) => {
   const {} = req.body;  // 클라이언트에서 보낸 데이터
   try {
     const connection = await connectToDB();
     if (connection) {  
       const result = await connection.execute(
-        `SELECT ROUND(AVG(SAL)) AS SAL, DNAME 
+        `SELECT SUM(SAL) AS SAL, DNAME 
         FROM EMP E
         INNER JOIN DEPT D ON E.DEPTNO = D.DEPTNO
         GROUP BY DNAME`,
@@ -363,6 +379,31 @@ app.post('/insert', async (req, res) => {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       
+      await connection.commit();
+      res.send({ msg: 'success'});
+      await connection.close();
+    } else {
+      res.status(500).send({ msg: 'DB 연결 실패' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ msg: '작성 중 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/comment/save', async (req, res) => {
+  console.log(req.body);
+  const { comment, boardNo } = req.body;  // 클라이언트에서 보낸 데이터
+  try {
+    const connection = await connectToDB();
+    if (connection) {
+      const result = await connection.execute(
+        `INSERT INTO BOARD_COMMENT 
+         VALUES(COMMENT_SEQ.NEXTVAL, :boardNo, 'user01', :\"comment\", 
+         1, SYSDATE, SYSDATE)`,
+        [boardNo, comment], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );   
       await connection.commit();
       res.send({ msg: 'success'});
       await connection.close();

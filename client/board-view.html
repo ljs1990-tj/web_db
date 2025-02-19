@@ -11,11 +11,11 @@
             width: 800px;
             margin : 20px auto;
         }
-        table, tr, th, td {
+        #table-view, #table-view th, #table-view td {
             text-align: center;
-            border : 2px solid #bbb;
+            border: 2px solid #bbb;
             border-collapse: collapse;
-            padding : 5px;
+            padding: 5px;
         }
         th {
             color : rgb(132, 39, 219);
@@ -28,35 +28,75 @@
         }
         #contents{
             padding: 30px;
-            height: 200px;
+            height: 100px;
         }
+        .t-margin {
+            margin-top : 10px;
+        }
+        .comment-pad {
+            padding : 0px 30px;
+        }
+        .t-margin th{
+            background-color: azure;
+            color : black;
+        }
+       
+
     </style>
 </head>
 <body>
     <div id="app">
         <div id="container">
-            <table>
-                <tr>
-                    <th>제목</th>
-                    <td>{{info.TITLE}}</td>
-                </tr>
-                <tr>
-                    <th>작성자</th>
-                    <td>{{info.USERNAME}}</td>
-                </tr>
-                <tr>
-                    <th>작성일</th>
-                    <td>{{info.CDATETIME}}</td>
-                </tr>
-                <tr>
-                    <th>조회수</th>
-                    <td>{{info.CNT}}</td>
-                </tr>
-                <tr>
-                    <th>내용</th>
-                    <td id="contents">{{info.CONTENTS}}</td>
-                </tr>
-            </table>
+            <div >
+                <table id="table-view">
+                    <tr>
+                        <th>제목</th>
+                        <td>{{info.TITLE}}</td>
+                    </tr>
+                    <tr>
+                        <th>작성자</th>
+                        <td>{{info.USERNAME}}</td>
+                    </tr>
+                    <tr>
+                        <th>작성일</th>
+                        <td>{{info.CDATETIME}}</td>
+                    </tr>
+                    <tr>
+                        <th>조회수</th>
+                        <td>{{info.CNT}}</td>
+                    </tr>
+                    <tr>
+                        <th>내용</th>
+                        <td id="contents">{{info.CONTENTS}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="t-margin">
+                <table id="comment-table">
+                    <tr>
+                        <th>작성자</th>
+                        <th>댓글 내용</th>
+                    </tr>
+                    <tr v-for="item in commentList">
+                        <th>{{item.USERID}}</th>
+                        <td class="comment-pad">{{item.CONTENTS}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="t-margin">
+                <table style="border: 2px solid #ddd; border-radius: 10px;">
+                    <tr>
+                        <th style="background-color: #eee;">댓글입력 : </th>
+                        <td style="padding : 10px 30px; width : 400px;">
+                            <textarea 
+                                v-model="comment" cols="50" rows="5"></textarea>
+                        </td>
+                        <td style="width : 90px;">
+                            <button @click="fnCommentSave">저장</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
             <div style="margin-top : 10px">
                 <button style="margin-right: 5px;" @click="fnRemove">삭제</button>
                 <button @click="fnEdit">수정</button>
@@ -71,7 +111,9 @@
         data() {
             return {
                 info : {},
-                boardNo : "" 
+                commentList : [],
+                boardNo : "",
+                comment : ""
             };
         },
         methods: {
@@ -85,8 +127,9 @@
                     data: JSON.stringify(nparmap),   // 서버로 보낼 데이터
                     contentType: "application/json",
                     success: function(data) {
-                        console.log(data.info);
+                        console.log(data);
                         self.info = data.info;
+                        self.commentList = data.commentList;
                     }
                 });
             },
@@ -116,6 +159,30 @@
                 // board-edit.html에서는 boardNo를 변수에 저장
                 let self = this;
                 location.href="board-edit.html?boardNo="+self.boardNo;
+            },
+            fnCommentSave : function (){
+                let self = this;
+                let nparmap = {
+                    comment : self.comment,
+                    boardNo : self.boardNo
+                };
+                $.ajax({
+                    url: "http://localhost:3000/comment/save",  // 서버 주소 수정 (http:// 포함)
+                    dataType: "json",
+                    type: "POST", // GET, POST
+                    data: JSON.stringify(nparmap),   // 서버로 보낼 데이터
+                    contentType: "application/json",
+                    success: function(data) {
+                       if(data.msg=="success"){
+                        alert("댓글이 등록되었습니다.");
+                        self.fnInfo();
+                       } else {
+                        alert("오류발생!");
+                       }
+                        
+                        
+                    }
+                });
             }
         }, // methods
         mounted() {
