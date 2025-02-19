@@ -264,6 +264,32 @@ app.post('/board/info', async (req, res) => {
   }
 });
 
+app.post('/prof/list', async (req, res) => {
+  const {} = req.body;  // 클라이언트에서 보낸 데이터
+  try {
+    const connection = await connectToDB();
+    if (connection) {  
+      const result = await connection.execute(
+        `SELECT 
+            PROFNO, NAME, POSITION, PAY,
+            TO_CHAR(HIREDATE, 'YYYY-MM-DD') AS HIREDATE, DNAME
+        FROM PROFESSOR P
+        INNER JOIN DEPARTMENT D ON P.DEPTNO = D.DEPTNO`,
+        [], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      
+      res.send({ msg: 'success', list : result.rows });
+      await connection.close();
+    } else {
+      res.status(500).send({ msg: 'DB 연결 실패' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ msg: '로그인 중 오류가 발생했습니다.' });
+  }
+});
+
 
 app.post('/insert', async (req, res) => {
   console.log(req.body);
