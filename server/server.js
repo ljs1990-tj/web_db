@@ -143,6 +143,40 @@ app.post('/remove', async (req, res) => {
   }
 });
 
+app.post('/prof/remove', async (req, res) => {
+  console.log(req.body);
+  const { list } = req.body;  // 클라이언트에서 보낸 데이터
+  try {
+    const connection = await connectToDB();
+    if (connection) {
+      let deleteTxt = "WHERE PROFNO IN (";
+      // WHERE PROFENO IN ()
+      for(let i=0; i<list.length; i++){
+        deleteTxt += list[i];
+        if(list.length-1 != i){
+          deleteTxt += ",";
+        }
+      }
+      deleteTxt += ")";
+    
+      const result = await connection.execute(
+        `DELETE FROM PROFESSOR ` + deleteTxt ,
+        [], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      
+      await connection.commit();
+      res.send({ msg: 'success'});
+      await connection.close();
+    } else {
+      res.status(500).send({ msg: 'DB 연결 실패' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ msg: '로그인 중 오류가 발생했습니다.' });
+  }
+});
+
 app.post('/board/edit', async (req, res) => {
   console.log(req.body);
   const { TITLE, CONTENTS, BOARDNO } = req.body;  // 클라이언트에서 보낸 데이터
@@ -290,6 +324,30 @@ app.post('/prof/list', async (req, res) => {
   }
 });
 
+app.post('/emp/avg', async (req, res) => {
+  const {} = req.body;  // 클라이언트에서 보낸 데이터
+  try {
+    const connection = await connectToDB();
+    if (connection) {  
+      const result = await connection.execute(
+        `SELECT ROUND(AVG(SAL)) AS SAL, DNAME 
+        FROM EMP E
+        INNER JOIN DEPT D ON E.DEPTNO = D.DEPTNO
+        GROUP BY DNAME`,
+        [], 
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      
+      res.send({ msg: 'success', list : result.rows });
+      await connection.close();
+    } else {
+      res.status(500).send({ msg: 'DB 연결 실패' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ msg: '로그인 중 오류가 발생했습니다.' });
+  }
+});
 
 app.post('/insert', async (req, res) => {
   console.log(req.body);

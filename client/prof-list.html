@@ -24,6 +24,7 @@
     <div id="app">
         <table>
             <tr>
+                <th>선택</th>
                 <th>교수번호</th>
                 <th>이름</th>
                 <th>직책</th>
@@ -32,6 +33,9 @@
                 <th>학과명</th>
             </tr>
             <tr v-for="item in list">
+                <td>
+                    <input type="checkbox" :value="item.PROFNO" v-model="selectItems">
+                </td>
                 <td>{{item.PROFNO}}</td>
                 <td>{{item.NAME}}</td>
                 <td>{{item.POSITION}}</td>
@@ -40,6 +44,7 @@
                 <td>{{item.DNAME}}</td>
             </tr>
         </table>
+        <button @click="fnRemove">삭제</button>
     </div>
 </body>
 </html>
@@ -49,7 +54,8 @@
         data() {
             return {
                 // 변수
-                list : []
+                list : [],
+                selectItems : []
             };
         },
         methods: {
@@ -68,8 +74,27 @@
                         console.log(self.list);
                     }
                 });
+            },
+            fnRemove : function(){
+                let self = this;
+                console.log(self.selectItems);
+                if(!confirm("정말 삭제하시겠습니까?")){
+                    return;
+                }
+                let nparmap = {list : self.selectItems};
+                $.ajax({
+                    url: "http://localhost:3000/prof/remove",  // 서버 주소 수정 (http:// 포함)
+                    dataType: "json",
+                    type: "POST", // GET, POST
+                    data: JSON.stringify(nparmap),   // 서버로 보낼 데이터
+                    contentType: "application/json",
+                    success: function (data) {
+                        alert("삭제되었습니다.");
+                        self.fnProfList();
+                    }
+                });
             }
-        },
+        }, // methods
         mounted() {
             // 처음 시작할 때 실행되는 부분
             let self = this;
